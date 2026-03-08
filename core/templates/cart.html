@@ -1,0 +1,78 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<h2 class="mb-4 fw-bold text-accent"><i class="fas fa-shopping-cart"></i> კალათის მართვა</h2>
+
+{% if cart_items %}
+    <div class="row">
+        <div class="col-md-8">
+            {% for c in cart_items %}
+            <div class="card mb-3 shadow-sm border-0">
+                <div class="row g-0">
+                    <div class="col-md-3 d-flex align-items-center bg-light">
+                        {% if c.item.image %}
+                            <img src="{{ c.item.image.url }}" class="img-fluid rounded-start" alt="{{ c.item.name }}">
+                        {% else %}
+                            <img src="https://placehold.co/200x200/FFC300/FF5F00?text=No+Img" class="img-fluid rounded-start">
+                        {% endif %}
+                    </div>
+                    <div class="col-md-9">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h5 class="card-title fw-bold">{{ c.item.name }}</h5>
+                                    <p class="mb-1 text-muted small">
+                                        მარაგშია: <span class="badge bg-secondary">{{ c.item.stock_quantity }}</span> | 
+                                        Reviews: {{ c.item.review_count }}
+                                    </p>
+                                    <p class="stars mb-1"><i class="fas fa-star"></i> რეიტინგი: {{ c.item.average_rating }}</p>
+                                </div>
+                                <h5 class="text-accent fw-bold">{{ c.item.price }} ₾</h5>
+                            </div>
+                            
+                            <hr>
+                            
+                            <div class="d-flex justify-content-between align-items-center">
+                                <!-- რაოდენობის კონტროლი -->
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">რაოდენობა:</span>
+                                    <form action="{% url 'update_cart' c.item.id %}" method="POST" class="d-flex">
+                                        {% csrf_token %}
+                                        <button type="submit" name="action" value="decrease" class="btn btn-sm btn-outline-secondary">-</button>
+                                        <input type="text" value="{{ c.quantity }}" class="form-control form-control-sm text-center mx-1" style="width: 40px;" readonly>
+                                        <button type="submit" name="action" value="increase" class="btn btn-sm btn-outline-secondary">+</button>
+                                    </form>
+                                </div>
+                                
+                                <!-- წაშლის ღილაკი -->
+                                <form action="{% url 'remove_from_cart' c.item.id %}" method="POST">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> წაშლა</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header card-header-custom fs-5">ჯამური ინფორმაცია</div>
+                <div class="card-body bg-light text-center">
+                    <h3 class="fw-bold">ჯამი: <span class="text-accent">{{ total_price }} ₾</span></h3>
+                    <hr>
+                    <button class="btn btn-custom btn-lg w-100 mt-2">ყიდვა <i class="fas fa-credit-card"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% else %}
+    <div class="alert alert-warning text-center shadow-sm">
+        <i class="fas fa-box-open fa-3x mb-3 text-muted"></i>
+        <h4>თქვენი კალათა ცარიელია</h4>
+        <a href="{% url 'home' %}" class="btn btn-warning-custom mt-3">მაღაზიაში დაბრუნება</a>
+    </div>
+{% endif %}
+{% endblock %}

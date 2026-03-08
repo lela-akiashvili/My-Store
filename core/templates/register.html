@@ -1,0 +1,81 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 mt-4">
+            <div class="card-header card-header-custom text-center fs-5">
+                <i class="fas fa-user-plus"></i> ახალი ანგარიშის შექმნა
+            </div>
+            <div class="card-body p-4 bg-light">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <i class="fas fa-exclamation-circle"></i> {{ error }}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    {% for field in form %}
+                        <div class="mb-3 position-relative">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            
+                            {% if 'password' in field.name|lower %}
+                                <div class="input-group">
+                                    {{ field }}
+                                    <button class="btn btn-outline-secondary toggle-password" type="button">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                            {% else %}
+                                {{ field }}
+                            {% endif %}
+
+                            {% if field.errors %}
+                                <div class="text-danger mt-1 small fw-bold">
+                                    {% for error in field.errors %}
+                                        <i class="fas fa-exclamation-triangle"></i> {{ error }}<br>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            
+                            {% if field.help_text %}
+                                <div class="form-text text-muted small">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+
+                    <button type="submit" class="btn btn-custom w-100 mt-3 btn-lg">რეგისტრაცია</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <span class="text-muted">უკვე გაქვთ ანგარიში?</span> 
+                    <a href="{% url 'login' %}" class="text-accent text-decoration-none">შედით სისტემაში</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.toggle-password').forEach(button => {
+        button.addEventListener('click', function() {
+            let input = this.previousElementSibling;
+            let icon = this.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        });
+    });
+</script>
+{% endblock %}

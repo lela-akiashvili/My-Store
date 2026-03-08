@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ka">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Store</title>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome (Icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --color-light-yellow: #FFD400;
+            --color-dark-yellow: #FFC300;
+            --color-orange: #FF8C00;
+            --color-dark-orange: #FF5F00;
+        }
+
+        body {
+            background-color: #fcfcfc;
+        }
+
+        .navbar-custom {
+            background-color: var(--color-dark-orange);
+        }
+
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: white !important;
+            font-weight: bold;
+        }
+
+        .btn-custom {
+            background-color: var(--color-orange);
+            color: white;
+            border: none;
+        }
+
+        .btn-custom:hover {
+            background-color: var(--color-dark-orange);
+            color: white;
+        }
+
+        .btn-warning-custom {
+            background-color: var(--color-light-yellow);
+            color: #333;
+            border: 1px solid var(--color-dark-yellow);
+        }
+
+        .btn-warning-custom:hover {
+            background-color: var(--color-dark-yellow);
+        }
+
+        .card-header-custom {
+            background-color: var(--color-dark-yellow);
+            color: #333;
+            font-weight: bold;
+        }
+
+        .text-accent {
+            color: var(--color-dark-orange);
+            font-weight: bold;
+        }
+
+        .stars {
+            color: var(--color-orange);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom mb-4 shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}"><i class="fas fa-store"></i> ონლაინ მაღაზია</a>
+
+            <form class="d-flex mx-auto w-50" action="{% url 'home' %}" method="GET">
+                <input class="form-control me-2" type="search" name="q" placeholder="ძებნა დასახელებით..."
+                    value="{{ request.GET.q }}">
+                <button class="btn btn-warning-custom" type="submit"><i class="fas fa-search"></i></button>
+            </form>
+
+            <ul class="navbar-nav ms-auto align-items-center">
+                {% if request.user.is_authenticated %}
+                <li class="nav-item me-3">
+                    <span class="text-white fw-bold"><i class="fas fa-user-circle"></i> გამარჯობა,
+                        {{ request.user.username }}</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-warning-custom text-dark px-3 py-1 rounded-pill me-2"
+                        href="{% url 'cart_view' %}">
+                        <i class="fas fa-shopping-cart"></i> კალათა
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-white" href="{% url 'logout' %}"><i class="fas fa-sign-out-alt"></i>
+                        გამოსვლა</a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'login' %}"><i class="fas fa-sign-in-alt"></i> შესვლა</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link btn btn-warning-custom text-dark px-3 py-1 rounded-pill ms-2"
+                        href="{% url 'register' %}">
+                        <i class="fas fa-user-plus"></i> რეგისტრაცია
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

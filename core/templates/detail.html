@@ -1,0 +1,103 @@
+{% extends 'index.html' %}
+
+{% block content %}
+<div class="row bg-white p-4 rounded shadow-sm mb-4 border-top border-4" style="border-color: var(--color-orange) !important;">
+    <div class="col-md-5 text-center">
+        {% if item.image %}
+            <img src="{{ item.image.url }}" class="img-fluid rounded" alt="{{ item.name }}">
+        {% else %}
+            <img src="https://placehold.co/500x500/FFC300/FF5F00?text={{ item.name }}" class="img-fluid rounded">
+        {% endif %}
+    </div>
+    <div class="col-md-7">
+        <h2 class="fw-bold">{{ item.name }}</h2>
+        <h3 class="text-accent mb-3">{{ item.price }} ₾</h3>
+        
+        <p><strong>ბრენდი:</strong> {{ item.brand }}</p>
+        <p><strong>გამოშვების თარიღი:</strong> {{ item.release_date|default:"უცნობია" }}</p>
+        <p><strong>საწყობში დარჩენილი რაოდენობა (Stock):</strong> 
+            <span class="badge bg-secondary">{{ item.stock_quantity }} ცალი</span>
+        </p>
+        <p class="stars fs-5"><i class="fas fa-star"></i> რეიტინგი: {{ item.average_rating }}</p>
+
+        <div class="d-flex gap-3 mt-4">
+            <a href="{% url 'add_to_cart' item.id %}" class="btn btn-warning-custom btn-lg">
+                <i class="fas fa-cart-plus"></i> კალათაში დამატება
+            </a>
+            <button class="btn btn-custom btn-lg" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                <i class="fas fa-star"></i> შეფასება
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- ტაბები (Tabs) -->
+<ul class="nav nav-tabs" id="itemTabs" role="tablist">
+  <li class="nav-item" role="presentation">
+    <button class="nav-link active fw-bold text-dark" data-bs-toggle="tab" data-bs-target="#details" type="button">Details</button>
+  </li>
+  <li class="nav-item" role="presentation">
+    <button class="nav-link fw-bold text-dark" data-bs-toggle="tab" data-bs-target="#reviews" type="button">Review ({{ item.review_count }})</button>
+  </li>
+</ul>
+
+<div class="tab-content bg-white p-4 border border-top-0 rounded-bottom shadow-sm mb-5">
+  <div class="tab-pane fade show active" id="details">
+    <p>{{ item.description }}</p>
+  </div>
+  <div class="tab-pane fade" id="reviews">
+    {% for review in item.reviews.all %}
+        <div class="border-bottom mb-3 pb-2">
+            <h6 class="fw-bold">{{ review.reviewer_name }} 
+                <span class="stars ms-2">
+                    {% for i in "12345" %}
+                        <i class="fa{% if forloop.counter <= review.rating_stars %}s{% else %}r{% endif %} fa-star"></i>
+                    {% endfor %}
+                </span>
+            </h6>
+            <p class="mb-0 text-muted">{{ review.comment }}</p>
+        </div>
+    {% empty %}
+        <p class="text-muted">ჯერჯერობით შეფასებები არ არის.</p>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- შეფასების მოდალი -->
+<div class="modal fade" id="reviewModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header card-header-custom">
+        <h5 class="modal-title">ნივთის შეფასება</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{% url 'item_detail' item.id %}">
+          {% csrf_token %}
+          <div class="modal-body">
+            <div class="mb-3">
+                <label>Rating (ვარსკვლავები 1-დან 5-მდე)</label>
+                <select name="rating_stars" class="form-select" required>
+                    <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                    <option value="4">⭐⭐⭐⭐ (4)</option>
+                    <option value="3">⭐⭐⭐ (3)</option>
+                    <option value="2">⭐⭐ (2)</option>
+                    <option value="1">⭐ (1)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label>სახელი და გვარი (შემფასებლის)</label>
+                <input type="text" name="reviewer_name" class="form-control" required>
+            </div>
+            <div class="mb-3">
+                <label>ტექსტური შეფასება (არასავალდებულო)</label>
+                <textarea name="comment" class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" class="btn btn-custom">OK</button>
+          </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
