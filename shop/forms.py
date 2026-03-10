@@ -12,7 +12,6 @@ class CustomRegisterForm(UserCreationForm):
         self.fields['username'].label = "მომხმარებლის სახელი"
         self.fields['email'].label = "ელ-ფოსტა"
         
-        # ავტომატურად ვადებთ bootstrap კლასებს ლამაზი UI-სთვის
         for field_name, field in self.fields.items():
             field.widget.attrs['class'] = 'form-control'
 

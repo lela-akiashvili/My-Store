@@ -2,19 +2,14 @@ import os
 import django
 from datetime import date
 
-# ვეუბნებით პითონს თუ სად იპოვოს Django-ს პარამეტრები
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "my_store.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 
-# ვაიმპორტებთ ჩვენს მოდელს
-from core.models import Item, ItemReview
+from shop.models import Item, ItemReview
 
 def populate():
-    print("ვასუფთავებ ძველ მონაცემებს (თუ არსებობს)...")
     Item.objects.all().delete()
-    
-    print("ვიწყებ ახალი ნივთების დამატებას...")
-    
+
     products = [
         {"name": "თანამედროვე დივანი 'ალფა'", "brand": "IKEA", "category": "ავეჯი", "price": 1200.00, "stock": 5, "date": date(2023, 5, 10), "desc": "კომფორტული, 3-ადგილიანი დივანი ნაცრისფერი ნაჭრით."},
         {"name": "ხის სასადილო მაგიდა", "brand": "JYSK", "category": "ავეჯი", "price": 850.50, "stock": 12, "date": date(2023, 8, 15), "desc": "მუხის მასიური ხისგან დამზადებული მაგიდა, იტევს 6 ადამიანს."},

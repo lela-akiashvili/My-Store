@@ -9,7 +9,7 @@ from .forms import CustomRegisterForm, CustomLoginForm
 def home(request):
     items = Item.objects.all()
 
-    # 1. კატეგორიების და ბრენდების ამოღება დროფდაუნისთვის (Dropdown)
+    # 1. კატეგორიების და ბრენდების ამოღება დროფდაუნისთვის
     categories = Item.objects.values_list('category', flat=True).distinct()
     brands = Item.objects.values_list('brand', flat=True).distinct()
 
@@ -55,7 +55,7 @@ def home(request):
         except ValueError:
             pass
 
-    # 2. პაგინაციის (Pagination) ლოგიკა (მაგ: 6 ნივთი თითო გვერდზე)
+    # 2. Pagination ლოგიკა (6 ნივთი თითო გვერდზე)
     paginator = Paginator(items, 6) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -69,7 +69,7 @@ def home(request):
     context = {
         'page_obj': page_obj,
         'categories': categories,
-        'brands': brands, # გადავცემთ ბრენდებს 
+        'brands': brands,
         'query_string': query_string,
     }
     return render(request, 'home.html', context)

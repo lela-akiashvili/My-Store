@@ -7,8 +7,6 @@ class Item(models.Model):
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="ფასი")
     description = models.TextField(verbose_name="აღწერა")
     stock_quantity = models.IntegerField(default=0, verbose_name="რაოდენობა საწყობში")
-    
-    # ახალი ველები სურათისთვის და თარიღისთვის
     image = models.ImageField(upload_to='items/', null=True, blank=True, verbose_name="სურათი")
     release_date = models.DateField(null=True, blank=True, verbose_name="გამოშვების თარიღი")
 
