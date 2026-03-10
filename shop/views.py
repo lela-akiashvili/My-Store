@@ -1,9 +1,8 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Avg
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
-from .models import Item, ItemReview
+from .models import Item, ItemReview, CartItem
 from .forms import CustomRegisterForm, CustomLoginForm
 
 def home(request):
@@ -28,29 +27,25 @@ def home(request):
     if brand:
         items = items.filter(brand=brand)
         
-    # ფასის ლოგიკა დაცვით (არ შეიძლება უარყოფითი ან მინიმალური > მაქსიმალურზე)
-    if min_price and max_price:
+    # ფასის ლოგიკა დაცვით (მინ >= 0 და მინ <= მაქს)
+    if min_price or max_price:
         try:
-            min_p = float(min_price)
-            max_p = float(max_price)
+            min_p = float(min_price) if min_price else 0
+            max_p = float(max_price) if max_price else 999999
+            if min_p < 0: min_p = 0
+            if max_p < 0: max_p = 0
             if min_p > max_p:
                 # თუ მომხმარებელმა შეცდომით მინიმალური მეტი ჩაწერა, ვუცვლით ადგილებს
                 min_p, max_p = max_p, min_p
             items = items.filter(price__gte=min_p, price__lte=max_p)
         except ValueError:
             pass
-    else:
-        if min_price:
-            items = items.filter(price__gte=min_price)
-        if max_price:
-            items = items.filter(price__lte=max_price)
             
     # რეიტინგით გაფილტვრა (დაცვა 1-ზე ნაკლებზე)
     if min_rating:
         try:
             rating_val = float(min_rating)
-            if rating_val < 1:
-                rating_val = 1.0
+            if rating_val < 1: rating_val = 1.0
             items = [item for item in items if item.average_rating >= rating_val]
         except ValueError:
             pass
@@ -76,82 +71,51 @@ def home(request):
 
 def item_detail(request, pk):
     item = get_object_or_404(Item, pk=pk)
-
     if request.method == 'POST' and 'rating_stars' in request.POST:
         reviewer_name = request.POST.get('reviewer_name')
         rating_stars = request.POST.get('rating_stars')
         comment = request.POST.get('comment', '')
-        
         ItemReview.objects.create(
-            item=item,
-            reviewer_name=reviewer_name,
-            rating_stars=int(rating_stars),
-            comment=comment
+            item=item, reviewer_name=reviewer_name,
+            rating_stars=int(rating_stars), comment=comment
         )
         return redirect('item_detail', pk=item.id)
-
     return render(request, 'detail.html', {'item': item})
 
+# კალათის ახალი ლოგიკა (მონაცემთა ბაზაზე დაფუძნებული)
 @login_required(login_url='login')
 def cart_view(request):
-    cart = request.session.get('cart', {})
-    cart_items = []
-    total_price = 0
-    
-    for item_id, quantity in cart.items():
-        try:
-            item = Item.objects.get(id=item_id)
-            total = item.price * quantity
-            total_price += total
-            cart_items.append({
-                'item': item,
-                'quantity': quantity,
-                'total': total
-            })
-        except Item.DoesNotExist:
-            pass
-            
+    cart_items = CartItem.objects.filter(user=request.user)
+    total_price = sum(item.total_price for item in cart_items)
     return render(request, 'cart.html', {'cart_items': cart_items, 'total_price': total_price})
 
 @login_required(login_url='login')
 def add_to_cart(request, item_id):
-    cart = request.session.get('cart', {})
-    item_id_str = str(item_id)
-    
-    if item_id_str in cart:
-        cart[item_id_str] += 1
-    else:
-        cart[item_id_str] = 1
-        
-    request.session['cart'] = cart
+    item = get_object_or_404(Item, id=item_id)
+    cart_item, created = CartItem.objects.get_or_create(user=request.user, item=item)
+    if not created:
+        cart_item.quantity += 1
+        cart_item.save()
     return redirect('cart_view')
 
 @login_required(login_url='login')
 def update_cart(request, item_id):
-    cart = request.session.get('cart', {})
-    item_id_str = str(item_id)
+    cart_item = get_object_or_404(CartItem, user=request.user, item_id=item_id)
     action = request.POST.get('action')
-
-    if item_id_str in cart:
-        if action == 'increase':
-            cart[item_id_str] += 1
-        elif action == 'decrease':
-            cart[item_id_str] -= 1
-            if cart[item_id_str] <= 0:
-                del cart[item_id_str]
-
-    request.session['cart'] = cart
+    if action == 'increase':
+        cart_item.quantity += 1
+        cart_item.save()
+    elif action == 'decrease':
+        cart_item.quantity -= 1
+        if cart_item.quantity <= 0:
+            cart_item.delete()
+        else:
+            cart_item.save()
     return redirect('cart_view')
 
 @login_required(login_url='login')
 def remove_from_cart(request, item_id):
-    cart = request.session.get('cart', {})
-    item_id_str = str(item_id)
-
-    if item_id_str in cart:
-        del cart[item_id_str]
-
-    request.session['cart'] = cart
+    CartItem.objects.filter(user=request.user, item_id=item_id).delete()
     return redirect('cart_view')
 
 def register_view(request):
